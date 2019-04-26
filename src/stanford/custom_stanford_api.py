@@ -1,6 +1,8 @@
 import requests
 import json
 from requests.sessions import Session
+from http.client import HTTPConnection
+import logging
 
 
 class StanfordCoreNLP:
@@ -11,6 +13,7 @@ class StanfordCoreNLP:
     def __init__(self, url, session=Session()):
         self.server_url = url
         self.session = session
+        self.session.trust_env = False
 
     def annotate(self, text, annotators="tokenize,ssplit,pos", pattern=None, runnr=1):
         assert isinstance(text, str)
@@ -31,8 +34,11 @@ class StanfordCoreNLP:
         try:
             with self.session.get(self.server_url) as req:
                 data = text.encode('utf8')
-                r = requests.post(
+                rs = Session()
+                rs.trust_env = False
+                r = rs.post(
                     self.server_url, params=params, data=data, headers={'Connection': 'close'})
+
                 if r.status_code == 500:
                     print(r.content)
                     raise Exception500

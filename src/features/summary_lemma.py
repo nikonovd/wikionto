@@ -33,7 +33,7 @@ def get_lemmas(p):
     try:
         lemmas = []
         parsedict = parser.annotate(text, annotators="tokenize,ssplit,pos,lemma")
-        if not parsedict['sentences']:
+        if "sentences" not in parsedict or not parsedict['sentences']:
             return title, []
         for sentence in parsedict['sentences']:
             parsedict = sentence["tokens"]

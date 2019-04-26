@@ -4,7 +4,7 @@ from json import load, dump
 import time
 
 # UTIL
-DATAP = "S:/Data/Wikipedia"
+DATAP = "/Users/dnikonov/Uni/wikionto/data/mined"
 AP = DATAP + "/articledict.json"
 
 
@@ -23,7 +23,7 @@ def save_articledict(ad):
 
 
 def backup_articledict(ad):
-    with open(DATAP+"/temp/articledict_backup.json", "w", encoding="utf-8") as f:
+    with open(DATAP+"/articledict_backup.json", "w", encoding="utf-8") as f:
         dump(ad, f)
 
 
@@ -47,9 +47,13 @@ def stop_time(start_time):
     print(hms_string(time.time() - start_time))
 
 
+def flat_list(l):
+    return [item for sublist in l for item in sublist]
+
+
 # SCOPING
 DEPTH = 8
-ROOTS = ["Category:Formal_languages", "Category:Computer_file_formats"]
+ROOTS = ["Category:Computing_platforms", "Category:Software"]
 
 FEATURE_SETNAMES = ["DbpediaInfoboxTemplate", "URL_Braces_Words", "COPHypernym", "Lemmas", "Wikipedia_Lists"]  # Lemmas,
 INDICATORS = ["PositiveInfobox", "URLBracesPattern", "In_Wikipedia_List", "PlainTextKeyword", "POS", "COP",
@@ -57,7 +61,7 @@ INDICATORS = ["PositiveInfobox", "URLBracesPattern", "In_Wikipedia_List", "Plain
 
 # CONFIG FOR INDICATORS
 # - for POS and URLBracesPattern
-KEYWORDS = ['language', 'format', 'notation']
+KEYWORDS = ['software', 'system', 'application', 'framework', 'api', 'programming']
 
 # - stretched keywords resulting which maybe hint at languages. Here, maybe means that we subjectively know that such
 #   software has its own language, but! we cannot objectively present proof in the summary.
@@ -65,7 +69,7 @@ XKEYWORDS = [['file', 'type'], ['template', 'engine'], ['templating', 'system'],
              ['template', 'system'], ['theorem', 'prover'], ['parser', 'generator'], ['typesetting', 'system']]
 
 # - infobox indication
-POSITIVETEMPLATES = ["infobox_programming_language", "infobox_file_format"]
+POSITIVETEMPLATES = ["infobox_software", "infobox_os"]
 
 # - Wikipedia Lists
 # LIST_ARTICLES = retrievelists()
@@ -76,9 +80,7 @@ NOISY_CATS = ['Category:Statistical_data_types', 'Category:Knowledge_representat
               'Category:Propositional_attitudes‎',
               'Category:Theorems']
 # - Note that all other infoboxes are negative. There are about 600 different templates used in the scope.
-NEUTRALTEMPLATES = ["infobox_software", "infobox_technology_standard", "infobox_software_license"] + \
-                   ["infobox", "infobox_unit", "infobox_data_structure", "infobox_writing_system",
-                    "infobox_quality_tool", "infobox_identifier"]
+NEUTRALTEMPLATES = ["infobox", "infobox_windows_component", "infobox_software_license", "infobox_programming_language", "infobox_file_format", "infobox_os_component", "infobox_web_browser", "infobox_website", "infobox_file_system", "infobox_filesystem"]
 
 # - Negative URL keywords
 EX_URL_KEYWORD = ["List_of", "comparison", "Comparison"]

@@ -4,6 +4,7 @@ import random
 import pandas as pd
 import csv
 import webbrowser
+from selenium import webdriver
 
 
 def perform_eval():
@@ -12,7 +13,7 @@ def perform_eval():
         S = set(a for a in ad if ad[a]["Seed"])
 
     articles_visited = set()
-    with open(DATAP + '/eval/random.csv', 'r', encoding="UTF8") as f:
+    with open(DATAP + '/eval/random.csv', 'r+', encoding="UTF8") as f:
         olddata = ""
         count = 0
         for line in f:
@@ -24,11 +25,12 @@ def perform_eval():
         olddata += "\n"
     print("old size: " + str(len(articles_visited)))
 
-    with open(DATAP + '/eval/random.csv', 'w', encoding="UTF8") as f:
+    with open(DATAP + '/eval/random.csv', 'w+', encoding="UTF8") as f:
         f.write(olddata)
         articles = list(ad.keys())
         articles.sort()
         x = count
+        driver = webdriver.Chrome()
         while x < 4000:
             index = random.randint(0, len(ad))
             article = articles[index]
@@ -37,13 +39,13 @@ def perform_eval():
             else:
                 articles_visited.add(article)
                 print("https://en.wikipedia.org/wiki/" + article)
-                webbrowser.open("https://en.wikipedia.org/wiki/" + article, new=2)
+                driver.get("https://en.wikipedia.org/wiki/" + article)
                 agreement = ""
-                while agreement not in ["yes", "no"]:
-                    agreement = input(str(x) + " Enter 'yes' or 'no'!")
-                if agreement == "yes":
+                while agreement not in ["1", "2"]:
+                    agreement = input(str(x) + " Enter '1 (yes)' or '2 (no)'!")
+                if agreement == "1":
                     agreement_int = "1"
-                if agreement == "no":
+                if agreement == "2":
                     agreement_int = "0"
                 f.write("|" + article + "|,|" + agreement_int + "|\n")
                 f.flush()
@@ -56,13 +58,14 @@ def get_classification(title, langdict):
     return resultdict
 
 
-def get_random_data():
-    with open(DATAP + "/eval/random.csv", "r", encoding="utf-8") as f:
+def get_random_data(filename="random_seed.csv"):
+    with open(DATAP + "/eval/" + filename, "r+", encoding="utf-8") as f:
         reader = csv.reader(f, quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
         A_random = []
         y = []
         for row in reader:
+            print(row)
             A_random.append(row[0])
             y.append(row[1])
 

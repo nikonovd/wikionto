@@ -1,3 +1,4 @@
+from requests.sessions import Session
 import requests
 import time
 from stanford.custom_stanford_api import StanfordCoreNLP, Exception500
@@ -17,9 +18,11 @@ class COPSemgrex():
             'isfamilyof': '{pos:NN;word:family} >cop {pos:/VB.*/} >/nmod:of/ {pos:NNS}=hypernym'
         }
         self.text = text
+        self.session = Session()
+        self.session.trust_env = False
 
     def run(self):
-        while not is_alive():
+        while not self.is_alive():
             print("Not alive")
             time.sleep(5)
         cops = dict()
@@ -32,30 +35,28 @@ class COPSemgrex():
             if not responsedict:
                 cops[variant] = []
             else:
-                cops[variant] = get_noun(responsedict)
+                cops[variant] = self.get_noun(responsedict)
 
         for hypernym in cops['isa']:
             if hypernym in cops['Aisa']:
                 cops['isa'].remove(hypernym)
         return cops
 
+    def get_noun(self, responsedict):
+        if not responsedict:
+            return []
+        else:
+            cops = []
+            for sentence_result in responsedict['sentences']:
+                for x in range(sentence_result['length']):
+                    cops.append(sentence_result[str(x)]['$hypernym']['text'])
+            return cops
 
-def get_noun(responsedict):
-    if not responsedict:
-        return []
-    else:
-        cops = []
-        for sentence_result in responsedict['sentences']:
-            for x in range(sentence_result['length']):
-                cops.append(sentence_result[str(x)]['$hypernym']['text'])
-        return cops
-
-
-def is_alive():
-    try:
-        return requests.get("http://localhost:9000/ping").ok
-    except requests.exceptions.ConnectionError:
-        return False
+    def is_alive(self):
+        try:
+            return self.session.get("http://localhost:9000/ping").ok
+        except requests.exceptions.ConnectionError:
+            return False
 
 
 if __name__ == '__main__':

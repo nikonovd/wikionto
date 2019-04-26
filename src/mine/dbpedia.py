@@ -223,6 +223,7 @@ def get_infobox_templates(root, mindepth, maxdepth):
         td[cl].append(t)
     return td
 
+
 def get_all_templates(root, mindepth=0, maxdepth=8):
     querytext = """
     PREFIX dbo: <http://dbpedia.org/ontology/>

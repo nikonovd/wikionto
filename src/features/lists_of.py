@@ -8,7 +8,7 @@ class WikiList(ArtdictCheck):
         print("Checking Wikipedia's lists")
 
         with open(DATAP + "/listlinks.json", "r") as f:
-            lld = load(f)
+            lld = dict(load(f))
 
         for article in articledict:
             articledict[article]['Wikipedia_Lists'] = []
@@ -18,7 +18,7 @@ class WikiList(ArtdictCheck):
             if listtitle in articledict:
                 articledict[listtitle]["IsList"] = 1
             for article in articles:
-                if article in articledict:
+                if article.replace("_", " ") in articledict:
                     articledict[article]["Wikipedia_Lists"].append(listtitle)
 
         return articledict

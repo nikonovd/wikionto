@@ -11,12 +11,21 @@ from check.seed import Seed
 
 
 def article_indicators():
-    extractors = [Seed, IdentifyDeletedFromWikipedia, IdentifyStubs, InfoboxDbEx, ExtractURLWords, WikiList, SumNouns, SumLemmas,
-                  COPFirstSentence]
+    extractors = [
+        # Seed,
+        # IdentifyDeletedFromWikipedia,
+        # IdentifyStubs,
+        # InfoboxDbEx,
+        # ExtractURLWords,
+        # WikiList,
+        # SumNouns,
+        # SumLemmas,
+        COPFirstSentence
+    ]
     for e in extractors:
         e().solo(backup=False)
 
 
 if __name__ == '__main__':
-    mine()
+    # mine()
     article_indicators()

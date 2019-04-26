@@ -29,7 +29,7 @@ def get_words(pair):
     try:
         nouns = []
         parsedict = parser.annotate(text)
-        if not parsedict['sentences']:
+        if "sentences" not in parsedict or not parsedict['sentences']:
             return title, []
         for sentence in parsedict['sentences']:
             parsedict = sentence["tokens"]

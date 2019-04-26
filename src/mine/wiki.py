@@ -1,5 +1,6 @@
 import requests
 from json.decoder import JSONDecodeError
+from requests.sessions import Session
 from json import dumps
 
 URL = "http://en.wikipedia.org/w/api.php"
@@ -12,7 +13,9 @@ def wiki_request(params):
     params['action'] = 'query'
     params['utf8'] = ''
     try:
-        r = requests.get(URL, params=params, headers=HEADER).json()
+        s = Session()
+        s.trust_env = False
+        r = s.get(URL, params=params, headers=HEADER).json()
     except requests.ConnectionError as cer:
         print("Connection Error")
         print(cer)
@@ -85,10 +88,11 @@ def getlinks(title):
     params = {'prop': 'links'
         , 'titles': title}
     wikijson = wiki_request(params)
+    # print(wikijson)
     links = []
     try:
-        if 'missing' in next(iter(wikijson["query"]["pages"].values())):
-            return links
+        # if 'missing' in next(iter(wikijson["query"]["pages"])):
+        #     return links
         while True:
             if "query" not in wikijson:
                 print("None at query " + title)
@@ -96,10 +100,10 @@ def getlinks(title):
             if "pages" not in wikijson["query"]:
                 print("None at pages " + title)
                 return links
-            if wikijson["query"]["pages"].values() is None:
+            if wikijson["query"]["pages"] is None:
                 print("None at values " + title)
                 return links
-            nextpages = next(iter(wikijson["query"]["pages"].values()))
+            nextpages = next(iter(wikijson["query"]["pages"]))
             if 'links' not in nextpages:
                 print("None at links " + title)
                 return links

@@ -7,7 +7,7 @@
 *.dat-jrnl
 *.lock
 *.log
-
+.DS_Store
 .metadata
 bin/
 tmp/
@@ -19,6 +19,9 @@ local.properties
 .settings/
 .loadpath
 .recommenders
+data/mined/
+data/temp/
+src/env/
 
 # External tool builders
 .externalToolBuilders/

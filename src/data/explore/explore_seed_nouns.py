@@ -1,15 +1,16 @@
-from multiprocessing import Pool
+from multiprocessing.pool import ThreadPool
 from nltk.parse.corenlp import CoreNLPDependencyParser
 from requests.exceptions import HTTPError
 from json.decoder import JSONDecodeError
 from json import load, dump
 from data import DATAP
-
+from collections import OrderedDict
 
 def get_single(summary):
     if summary.startswith('.'):
         summary = summary[1:]
     dep_parser = CoreNLPDependencyParser(url='http://localhost:9000')
+    print("Finished %s" % summary)
     try:
         parse, = dep_parser.raw_parse(summary)
         nouns = set()
@@ -34,7 +35,7 @@ def explore():
     d = load(f)
     f.close()
     cl_sums = list(d[cl]["Summary"] for cl in d if ("Summary" in d[cl]) and (d[cl]["Seed"] == 1))
-    pool = Pool(processes=10)
+    pool = ThreadPool(processes=10)
     nnlists = pool.map(get_single, cl_sums)
     nouns_f = dict()
     for nnlist in nnlists:
@@ -43,6 +44,8 @@ def explore():
                 nouns_f[nn] += 1
             else:
                 nouns_f[nn] = 1
+
+    nouns_f = OrderedDict(sorted(nouns_f.items(), key=lambda item: item[1]))
     f = open(DATAP + '/explore_seed_nouns.json', 'w', encoding='utf8')
     dump(nouns_f, f, indent=2)
     f.flush()
@@ -61,4 +64,4 @@ def get_top10():
 
 
 if __name__ == "__main__":
-    get_top10()
+    explore()

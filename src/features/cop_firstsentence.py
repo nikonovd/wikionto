@@ -27,6 +27,7 @@ class COPFirstSentence(ArtdictCheck):
         try:
             cop = COPSemgrex(first_sentence).run()
             del cop['Aisa']
+            print("Finished %s" % title)
             return title, cop
         except JSONDecodeError:
             print("Decode Error at :" + title)
