@@ -34,11 +34,13 @@ def explore():
     f = open(DATAP + '/articledict.json', 'r', encoding="utf8")
     d = load(f)
     f.close()
-    cl_sums = list(d[cl]["Summary"] for cl in d if ("Summary" in d[cl]) and (d[cl]["Seed"] == 1))
+    cl_sums = list(d[cl]["Summary"] for cl in d if ("Summary" in d[cl]))
     pool = ThreadPool(processes=10)
     nnlists = pool.map(get_single, cl_sums)
     nouns_f = dict()
     for nnlist in nnlists:
+        if nnlist is None:
+            continue
         for nn in nnlist:
             if nn in nouns_f:
                 nouns_f[nn] += 1
@@ -46,7 +48,7 @@ def explore():
                 nouns_f[nn] = 1
 
     nouns_f = OrderedDict(sorted(nouns_f.items(), key=lambda item: item[1]))
-    f = open(DATAP + '/explore_seed_nouns.json', 'w', encoding='utf8')
+    f = open(DATAP + '/explore_nouns.json', 'w+', encoding='utf8')
     dump(nouns_f, f, indent=2)
     f.flush()
     f.close()

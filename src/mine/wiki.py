@@ -7,10 +7,10 @@ URL = "http://en.wikipedia.org/w/api.php"
 HEADER = {'User-Agent': 'WikiOnto'}
 
 
-def wiki_request(params):
+def wiki_request(params, action="query"):
     params['format'] = 'json'
     params['formatversion'] = 2
-    params['action'] = 'query'
+    params['action'] = action
     params['utf8'] = ''
     try:
         s = Session()
@@ -85,8 +85,11 @@ def getcontent(revid):
 
 
 def getlinks(title):
-    params = {'prop': 'links'
-        , 'titles': title}
+    params = {
+        'prop': 'links',
+        'titles': title
+    }
+
     wikijson = wiki_request(params)
     # print(wikijson)
     links = []
@@ -118,6 +121,56 @@ def getlinks(title):
         return links
     except KeyError:
         return links
+
+
+def get_redirect(title):
+    params = {
+        'titles': title,
+        'redirects': '1'
+    }
+    try:
+        wikijson = wiki_request(params)
+
+        if "query" not in wikijson:
+            print("None at query " + title)
+            return []
+        if "pages" not in wikijson["query"]:
+            print("None at pages " + title)
+            return []
+        if wikijson["query"]["pages"] is None:
+            print("None at values " + title)
+            return []
+
+        target_page = next(iter(wikijson["query"]["pages"]))
+
+        if "title" not in target_page:
+            print("None at title")
+            return []
+
+        print("%s -> %s" % (title, target_page["title"]))
+
+        return target_page["title"]
+    except KeyError:
+        print("Redirect resolved in KeyError for %s" % title)
+        return []
+
+
+def get_summary_links(title):
+    params = {
+        'page'   : title,
+        'section': 0
+    }
+
+    try:
+        wikijson = wiki_request(params, action="parse")
+
+        # print(wikijson)
+        raw_links = wikijson["parse"]["links"]
+
+        return [l["title"] for l in raw_links]
+    except KeyError:
+        print("KeyError for %s." % title)
+        return []
 
 
 def getlinks_multi(titles):

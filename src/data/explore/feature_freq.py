@@ -1,5 +1,3 @@
-from data import load_articledict
-
 
 def analyze_feature_frequency(ad, **kwargs):
     freq = dict()

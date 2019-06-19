@@ -20,7 +20,13 @@ from json import dump
 from collections import Counter
 from random import sample
 
-F_SETNAMES = ["DbpediaInfoboxTemplate", "URL_Braces_Words", "COPHypernym", "Lemmas", "Wikipedia_Lists"]  # Lemmas,
+F_SETNAMES = [
+    "DbpediaInfoboxTemplate",
+    "URL_Braces_Words",
+    "COPHypernym",
+    "Lemmas",
+    # "InternalWikiLinks", not yet derived for total set
+    "Wikipedia_Lists"]
 
 
 def get_seed(ad):
@@ -30,7 +36,7 @@ def get_seed(ad):
 
 
 def build_f_to_id(FS, ad):
-    freq = analyze_feature_frequency(ad, FS)
+    freq = analyze_feature_frequency(ad, F_SetNames=FS)
     print("Total number of features:" + str(len(freq)))
     fs = [f for f, count in freq.items() if count > 10]
 
@@ -159,20 +165,24 @@ def train_decisiontree_FPR(configurationname, train_data, score_function, unders
 
 
 def train_decisiontree_with(configurationname, train_data, k, score_function, undersam=False, oversam=False,
-                            export=False):
+                            export=False, **kwargs):
     assert k > 0
     print("Training with configuration " + configurationname)
     X_train, y_train, id_to_a_train = train_data
-    dtc = DecisionTreeClassifier(criterion="entropy", random_state=0)
+
+    max_depth = None if "max_depth" not in kwargs else kwargs["max_depth"]
+
+    dtc = DecisionTreeClassifier(criterion="entropy", random_state=0, max_depth=max_depth)
 
     print("Feature Selection")
     # selector = SelectFpr(score_function)
     selector = SelectKBest(score_function, k=k)
     selector = SelectKBest(score_function, k=k)
-    result = selector.fit(X_train, y_train)
+    selector = selector.fit(X_train, y_train)
+
     X_train = selector.transform(X_train)
 
-    fitted_ids = [i for i in result.get_support(indices=True)]
+    fitted_ids = [i for i in selector.get_support(indices=True)]
 
     print("Apply Resampling")
     print(Counter(y_train))
@@ -336,24 +346,33 @@ def final_classification(ad, test=True):
 
     evals = []
 
-    for k in range(100,2000,50):
-        configurationname = "KBest_" + str(k) + "_chi2_Oversampling"
-        selector, classifier = train_decisiontree_with(configurationname, train_data, k, chi2, oversam=True, export=True)
-        X_allk = selector.transform(X_all0)
-        y_all = classifier.predict(X_allk)
-        eval_dict = classifier_score(id_to_a_eval2, classifier, selector, X_eval2, y_eval2)
-        eval_dict["Positive"] = len([y for y in y_all if y == '1'])
-        eval_dict["Negative"] = len([y for y in y_all if y == '0'])
-        eval_dict["Name"] = configurationname + "_eval2"
-        evals.append(eval_dict)
+    k = 23
+    configurationname = "KBest_" + str(k) + "_f_classif_NoResampling"
+    # print(configurationname)
+    selector, classifier = train_decisiontree_with(configurationname, train_data, k, chi2, oversam=True, export=True)
+
+    print(get_relevant_feature_names(selector, fs))
+
+    X_allk = selector.transform(X_all0)
+    y_all = classifier.predict(X_allk)
+    eval_dict = classifier_score(id_to_a_eval2, classifier, selector, X_eval2, y_eval2)
+    eval_dict["Positive"] = len([y for y in y_all if y == '1'])
+    eval_dict["Negative"] = len([y for y in y_all if y == '0'])
+    eval_dict["Name"] = configurationname + "_eval2"
+    evals.append(eval_dict)
 
     if not test:
         for x in range(len(y_all)):
             title = id_to_a_all[x]
             ad[title]["Class"] = y_all[x]
-        save_articledict(ad)
+        # save_articledict(ad)
 
     return pd.DataFrame(evals)
+
+
+def get_relevant_feature_names(selector, columns):
+    targets = selector.get_support(indices=True)
+    return [columns[i] for i in targets]
 
 
 if __name__ == '__main__':
@@ -372,7 +391,7 @@ if __name__ == '__main__':
     # df = train_decisiontree_exploration(ad, splitnr=2000)
     # df.plot.scatter(x="FPR", y="TPR", ax=ax, style="x", c="orange")
     # df = train_decisiontree_exploration(ad, splitnr=3000)
-    # df.plot.scatter(x="FPR", y="TPR", ax=ax, style="x", c="red")
+    # df.plot.scatter(x="FPR", y="TPR", ax=a x, style="x", c="red")
     # df = train_decisiontree_explorati on(ad, train_data, undersam=True)
     # df.to_csv(DATAP + "/dct_kbest_undersam.csv")
     # df.plot.scatter(x="FPR", y="TPR", ax=ax, style="o", c="purple")

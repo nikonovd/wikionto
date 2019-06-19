@@ -2,10 +2,18 @@
 # from mine.yago import get_artificial_languages
 from json import load, dump
 import time
+import pandas as pd
+from data.explore.feature_freq import analyze_feature_frequency
 
 # UTIL
 DATAP = "/Users/dnikonov/Uni/wikionto/data/mined"
 AP = DATAP + "/articledict.json"
+
+
+def load_seedlist():
+    ad = load_articledict()
+    seed = dict([a for a in ad.items() if a[1]["Seed"] == 1 and a[1]["IsStub"] == 0])
+    return seed
 
 
 def load_articledict():
@@ -49,6 +57,41 @@ def stop_time(start_time):
 
 def flat_list(l):
     return [item for sublist in l for item in sublist]
+
+
+def create_dataframe(articles, indicators):
+    print("Creating data frame...")
+    features = _build_feature_vector(articles, indicators)
+    feature_matrix = _build_feature_matrix(features, articles, indicators)
+    feature_matrix["Name"] = [a for a in articles]
+
+    df = pd.DataFrame(feature_matrix, columns=["Name"] + list(features))
+    df = df.set_index("Name")
+    df = _preprocess(df)
+
+    return df
+
+
+def _preprocess(df):
+    # drop all zero samples
+    df = df[(df != 0).any(axis=1)]
+    return df
+
+
+def _build_feature_vector(articles, indicators):
+    features_freqs = analyze_feature_frequency(articles, F_SetNames=indicators)
+    # print(features_freqs)
+    return features_freqs.keys()
+
+
+def _build_feature_matrix(features, articles, indicators):
+    feature_matrix = {f: [] for f in features}
+    for a in articles.items():
+        # print(a)
+        feature_freq = analyze_feature_frequency({a[0]: a[1]}, F_SetNames=indicators)
+        for key in feature_matrix:
+            feature_matrix[key].append(1 if key in feature_freq else 0)
+    return feature_matrix
 
 
 # SCOPING
