@@ -6,12 +6,13 @@ from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from sklearn.metrics.pairwise import laplacian_kernel
 from data import DATAP
 from data.explore.feature_freq import analyze_feature_frequency
+import numpy as np
+from sklearn.decomposition import PCA
 
-
-def plot_2d(df, title=""):
+def plot_2d(df, title="", export=False):
     # reduced = df
     print("Plotting 2D dataframe reduction...")
-    reduced = pd.DataFrame(PCA(n_components=2, random_state=42).fit_transform(df.iloc[:, 0:-2]))
+    reduced = pd.DataFrame(PCA(n_components=2, random_state=42).fit_transform(df.loc[:, df.columns != "Class"]))
     reduced = reduced.assign(Class=pd.Series(df.loc[:, "Class"].values, index=reduced.index))
 
     for n in set(reduced.loc[:, "Class"].values):
@@ -22,11 +23,14 @@ def plot_2d(df, title=""):
     plt.legend()
     plt.show()
 
+    if export:
+        plt.savefig(DATAP + "/cluster/" + title + ".png")
 
-def plot_3d(df, title=""):
+
+def plot_3d(df, title="", export=False):
     # reduced = df
     print("Plotting 3D dataframe reduction...")
-    reduced = pd.DataFrame(PCA(n_components=3, random_state=42).fit_transform(df.iloc[:, :-2]))
+    reduced = pd.DataFrame(PCA(n_components=3, random_state=42).fit_transform(df.loc[:, df.columns != "Class"]))
     reduced = reduced.assign(Class=pd.Series(df.loc[:, "Class"].values, index=reduced.index))
 
     fig = plt.figure()
@@ -39,6 +43,9 @@ def plot_3d(df, title=""):
     plt.legend()
     plt.show()
 
+    if export:
+        plt.savefig(DATAP + "/cluster/" + title + ".png")
+
 
 def create_cluster(data, clusterer, affinity_matrix=None):
     print("Creating clusters...")
@@ -48,17 +55,21 @@ def create_cluster(data, clusterer, affinity_matrix=None):
     y = pd.Series(clusterer.fit_predict(X), index=data.index)
 
     clustered = data.copy(deep=True)
-    clustered = clustered.assign(Class=y, index=data.index)
+    clustered = clustered.assign(Class=y)
     return clustered
 
 
-def cluster_scores(df, cluster_instantiator, max_n):
+def cluster_scores(df, cluster_instantiator, max_n, kernel=laplacian_kernel):
     silhouettes = []
-    print("Calculating laplacian matrix")
-    affinity_matrix = laplacian_kernel(df)
+
+    affinity_matrix = None
+    if kernel is not None:
+        print("Calculating laplacian matrix")
+        affinity_matrix = kernel(df.values)
+
     for n in range(2, max_n, 1):
         print("Step %s" % str(n))
-        c = cluster_instantiator(n, affinity_matrix)
+        c = cluster_instantiator(n)
         clustered = create_cluster(data=df, clusterer=c, affinity_matrix=affinity_matrix)
         scores = __cluster_scores(clustered)
         silhouettes.append(scores)
@@ -72,8 +83,8 @@ def cluster_scores(df, cluster_instantiator, max_n):
 
 def __cluster_scores(data):
     return {
-        "silhouette": silhouette_score(data.iloc[:, 1:-2], labels=data["Class"].values),
-        "calinski_harabasz": calinski_harabasz_score(data.iloc[:, 1:-2], labels=data["Class"].values)
+        "silhouette": silhouette_score(data.iloc[:, 1:-1], labels=data.loc[:, "Class"].values),
+        "calinski_harabasz": calinski_harabasz_score(data.iloc[:, 1:-1], labels=data.loc[:, "Class"].values)
     }
 
 
@@ -99,3 +110,10 @@ def analyze_cluster(ad, cluster, relevant_features=None):
                           key=lambda v: v[1], reverse=True)))
 
 
+def best_pca(data):
+    pca = PCA().fit(data)
+    best_n_components = np.where(np.cumsum(pca.explained_variance_ratio_) >= 0.998)
+
+    print("...reducing to %s components." % str(best_n_components[0][0]))
+
+    return PCA(n_components=best_n_components[0][0]).fit_transform(data)

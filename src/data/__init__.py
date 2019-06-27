@@ -12,7 +12,7 @@ AP = DATAP + "/articledict.json"
 
 def load_seedlist():
     ad = load_articledict()
-    seed = dict([a for a in ad.items() if a[1]["Seed"] == 1 and a[1]["IsStub"] == 0])
+    seed = dict([a for a in ad.items() if a[1]["Seed"] and valid_article(a[0], ad)])
     return seed
 
 
