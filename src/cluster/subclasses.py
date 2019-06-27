@@ -12,6 +12,7 @@ from data import create_dataframe
 import numpy as np
 from sklearn.decomposition import PCA
 from pprint import pprint
+from sklearn.preprocessing import StandardScaler
 
 def plot_score(ss, max_n, title):
     x = range(2, max_n, 1)
@@ -102,16 +103,16 @@ if __name__ == "__main__":
         # "single_Wikipedia_Lists": ["Wikipedia_Lists"],
         # "multi_Lemmas": ["Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
         # "multi_Lemmas_pca": ["Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
-        "multi_InternalLinks": ["InternalWikiLinks", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
+        # "multi_InternalLinks": ["InternalWikiLinks", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
         # "multi_InternalLinks_pca": ["InternalWikiLinks", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
         # "multi_simple": ["URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
         # "multi_simple_pca": ["URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
-        "multi_no_hypernym": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "Wikipedia_Lists"],
-        "multi_no_hypernym_pca": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "Wikipedia_Lists"],
-        # "multi_all":  ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
+        # "multi_no_hypernym": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "Wikipedia_Lists"],
+        # "multi_no_hypernym_pca": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "Wikipedia_Lists"],
+        "multi_all":  ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
         # "multi_all_pca": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
     }
-    # N = 6
+    N = 4
 
     best_N = {
         "multi_InternalLinks": 6,
@@ -125,7 +126,7 @@ if __name__ == "__main__":
     ss = pd.DataFrame()
     dbs = pd.DataFrame()
     for (name, config) in configs.items():
-        print("Clustering %s with n=%i" % (name, best_N[name]))
+        print("Clustering %s" % name)
         df = create_dataframe(seed, indicators=config)
 
         # vt = VarianceThreshold(threshold=0.05)
@@ -136,19 +137,22 @@ if __name__ == "__main__":
             print("Performing pca...")
             df = pd.DataFrame(best_pca(df), index=df.index)
 
-        N = best_N[name]
+        # N = best_N[name]
 
         c_name = name + "_" + str(N)
 
         # print("Calculating laplacian matrix...")
         # X = laplacian_kernel(df)
 
-        clustered = create_cluster(df, cluster_func(N))
-        # clustered = df.copy(deep=True)
-        # clustered = pd.DataFrame(best_pca(df), index=df.index).assign(Class=pd.Series(np.zeros(df.shape[0], dtype=np.int), index=df.index))
-        eval_manual(clustered, apps=apps, libs=libs, frameworks=frameworks)
+        # clustered = create_cluster(df, cluster_func(N))
+        clustered = df.copy(deep=True)
+        clustered = StandardScaler(with_mean=False).fit_transform(clustered)
+        clustered = pd.DataFrame(best_pca(df), index=df.index).assign(Class=pd.Series(np.zeros(df.shape[0], dtype=np.int), index=df.index))
+        # eval_manual(clustered, apps=apps, libs=libs, frameworks=frameworks)
 
-        # plot_2d(clustered, c_name)
+
+
+        plot_2d(clustered, c_name)
         # save_classes(clustered, name=c_name)
 
         # scores = cluster_scores(df, cluster_instantiator=cluster_func, max_n=max_n, kernel=None)
