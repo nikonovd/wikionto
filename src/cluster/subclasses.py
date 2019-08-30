@@ -110,7 +110,7 @@ if __name__ == "__main__":
         # "multi_no_hypernym": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "Wikipedia_Lists"],
         # "multi_no_hypernym_pca": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "Wikipedia_Lists"],
         "multi_all":  ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
-        # "multi_all_pca": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
+        "multi_all_pca": ["DbpediaInfoboxTemplate", "InternalWikiLinks", "Lemmas", "URL_Braces_Words", "COPHypernym", "Wikipedia_Lists"],
     }
     N = 4
 
@@ -144,15 +144,15 @@ if __name__ == "__main__":
         # print("Calculating laplacian matrix...")
         # X = laplacian_kernel(df)
 
-        # clustered = create_cluster(df, cluster_func(N))
-        clustered = df.copy(deep=True)
-        clustered = StandardScaler(with_mean=False).fit_transform(clustered)
-        clustered = pd.DataFrame(best_pca(df), index=df.index).assign(Class=pd.Series(np.zeros(df.shape[0], dtype=np.int), index=df.index))
-        # eval_manual(clustered, apps=apps, libs=libs, frameworks=frameworks)
+        clustered = create_cluster(df, cluster_func(N))
+        # clustered = df.copy(deep=True)
+        # clustered = StandardScaler(with_mean=False).fit_transform(clustered)
+        # clustered = pd.DataFrame(best_pca(df), index=df.index).assign(Class=pd.Series(np.zeros(df.shape[0], dtype=np.int), index=df.index))
+        eval_manual(clustered, apps=apps, libs=libs, frameworks=frameworks)
 
 
 
-        plot_2d(clustered, c_name)
+        # plot_2d(clustered, c_name)
         # save_classes(clustered, name=c_name)
 
         # scores = cluster_scores(df, cluster_instantiator=cluster_func, max_n=max_n, kernel=None)
