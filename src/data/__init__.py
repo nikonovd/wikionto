@@ -6,7 +6,7 @@ import pandas as pd
 from data.explore.feature_freq import analyze_feature_frequency
 
 # UTIL
-DATAP = "/Users/dnikonov/Uni/wikionto/data/mined"
+DATAP = "/Users/dnikonov/Uni/wikionto/data"
 AP = DATAP + "/articledict.json"
 
 
